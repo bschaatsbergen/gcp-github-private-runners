@@ -89,7 +89,7 @@ resource "google_compute_instance_template" "gha_runners" {
   }
 
   network_interface {
-    subnetwork         = google_compute_subnetwork.example.id
+    subnetwork         = google_compute_subnetwork.example.id # Replace this with your subnetwork!
     subnetwork_project = var.project_id
   }
 
