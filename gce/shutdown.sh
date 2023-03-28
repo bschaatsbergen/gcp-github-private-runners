@@ -4,7 +4,7 @@
 export GITHUB_ORG_TOKEN=$(gcloud secrets versions access latest --secret="${secret}")
 
 # Request a runner removal token from the GitHub API and export it as an environment variable
-export RUNNER_REMOVE_TOKEN=$(curl -s -X POST -H "authorization: token $GITHUB_ORG_TOKEN" "https://api.github.com/orgs/example/actions/runners/remove-token" | jq -r .token)
+export RUNNER_REMOVE_TOKEN=$(curl -s -X POST -H "authorization: token $GITHUB_ORG_TOKEN" "https://api.github.com/orgs/${github_org}/actions/runners/remove-token" | jq -r .token)
 
 # Set working directory
 cd /runner

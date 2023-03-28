@@ -47,12 +47,14 @@ resource "google_compute_instance_template" "gha_runners" {
     enable-oslogin         = true
     startup-script = templatefile("${path.module}/startup.sh",
       {
-        secret = google_secret_manager_secret.github_runner_org_token.secret_id
+        secret     = google_secret_manager_secret.github_runner_org_token.secret_id,
+        github_org = "my-example-org"
       }
     )
     shutdown-script = templatefile("${path.module}/shutdown.sh",
       {
-        secret = google_secret_manager_secret.github_runner_org_token.secret_id
+        secret     = google_secret_manager_secret.github_runner_org_token.secret_id
+        github_org = "my-example-org"
       }
     )
   }

@@ -21,7 +21,7 @@ apt-get update && apt-get install google-cloud-sdk -y --no-install-recommends
 export GITHUB_ORG_TOKEN=$(gcloud secrets versions access latest --secret="${secret}")
 
 # Request a runner registration token from the GitHub API
-export RUNNER_REGISTRATION_TOKEN=$(curl -s -X POST -H "authorization: token $GITHUB_ORG_TOKEN" "https://api.github.com/orgs/example/actions/runners/registration-token" | jq -r .token)
+export RUNNER_REGISTRATION_TOKEN=$(curl -s -X POST -H "authorization: token $GITHUB_ORG_TOKEN" "https://api.github.com/orgs/${github_org}/actions/runners/registration-token" | jq -r .token)
 
 # Create necessary directories
 mkdir /runner /runner-tmp
@@ -37,7 +37,7 @@ tar xzf ./actions-runner-linux-x64-2.303.0.tar.gz
 
 # Create the runner and start the configuration experience
 export RUNNER_ALLOW_RUNASROOT=1
-./config.sh --unattended --replace --url https://github.com/example --token "$RUNNER_REGISTRATION_TOKEN"
+./config.sh --unattended --replace --url https://github.com/${github_org} --token "$RUNNER_REGISTRATION_TOKEN"
 
 # Start the runner
 ./run.sh
