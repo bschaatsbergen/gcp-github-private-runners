@@ -1,31 +1,37 @@
-# Managed Ubuntu Cloud source image for the VM
+# This Terraform configuration defines a Google Compute Engine VM
+# that runs GitHub Actions runners. 
+
+# Retrieves a managed Ubuntu image from Google Cloud. 
+# It will be used to create the VM's boot disk.
 data "google_compute_image" "ubuntu" {
   family  = "ubuntu-2004-lts"
   project = "ubuntu-os-cloud"
 }
 
-# Create a service account for the VM
+# Service account for the VM. 
+# The VM will use this service account to access other resources.
 resource "google_service_account" "gha_runners" {
   account_id   = "gha-runners"
   display_name = "Service Account for GitHub Actions Runners"
   project      = var.project_id
 }
 
-# Required to write logs to Cloud Logging
+# Service account write access to Cloud Logging.
 resource "google_project_iam_member" "gha_runners_log_writer" {
   role    = "roles/logging.logWriter"
   member  = "serviceAccount:${google_service_account.gha_runners.email}"
   project = var.project_id
 }
 
-# Required to write logs to Cloud Logging
+# Service account write access to Cloud Monitoring.
 resource "google_project_iam_member" "gha_runners_metric_writer" {
   role    = "roles/monitoring.metricWriter"
   member  = "serviceAccount:${google_service_account.gha_runners.email}"
   project = var.project_id
 }
 
-# Grant the service account associated to the VM access to the secret
+# Grants the service account read access to a secret in Google Secret Manager.
+# The secret is used to authenticate with GitHub.
 resource "google_secret_manager_secret_iam_member" "gha_runners_github_runner_org_token_secret_accessor" {
   secret_id = google_secret_manager_secret.github_runner_org_token.secret_id
   role      = "roles/secretmanager.secretAccessor"
@@ -33,11 +39,12 @@ resource "google_secret_manager_secret_iam_member" "gha_runners_github_runner_or
   project   = google_secret_manager_secret.github_runner_org_token.project
 }
 
-# Blueprint for the VM
+# VM's blueprint (instance template). 
+# It specifies the VM's metadata, scheduling, disk, network interface, and other settings.
 resource "google_compute_instance_template" "gha_runners" {
   name_prefix          = "gha-runner"
   description          = "This template is used to create VMs that run GitHub Actions Runners"
-  instance_description = "VM running GitHub Actions Runners"
+  instance_description = "VM running a GitHub Actions Runner"
   region               = "europe-west4"
   machine_type         = "n2-standard-2"
   can_ip_forward       = false
@@ -45,6 +52,9 @@ resource "google_compute_instance_template" "gha_runners" {
   metadata = {
     google-logging-enabled = true
     enable-oslogin         = true
+    # The startup and shutdown scripts for the VM.
+    # These scripts use a secret stored in Google Secret Manager
+    # to authenticate with GitHub.
     startup-script = templatefile("${path.module}/scripts/startup.sh",
       {
         secret     = google_secret_manager_secret.github_runner_org_token.secret_id,
@@ -59,8 +69,9 @@ resource "google_compute_instance_template" "gha_runners" {
     )
   }
 
-  # Using the below scheduling configuration,
-  # the MIG (managed instance group) will recreate the Spot VM if Compute Engine stops them
+  # Scheduling settings for the VM.
+  # This VM will be preemptible, which means that Google can shut it down
+  # at any time to make resources available for other users.
   scheduling {
     automatic_restart           = false
     preemptible                 = true
@@ -102,7 +113,7 @@ resource "google_compute_instance_template" "gha_runners" {
   }
 }
 
-# MIG that manages the lifecycle of the VMs
+# Manages the lifecycle of the VMs.
 resource "google_compute_instance_group_manager" "gha_runners" {
   name               = "gha-runners"
   base_instance_name = "gha-runner"
