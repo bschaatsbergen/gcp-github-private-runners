@@ -45,16 +45,16 @@ resource "google_compute_instance_template" "gha_runners" {
   metadata = {
     google-logging-enabled = true
     enable-oslogin         = true
-    startup-script = templatefile("${path.module}/startup.sh",
+    startup-script = templatefile("${path.module}/scripts/startup.sh",
       {
         secret     = google_secret_manager_secret.github_runner_org_token.secret_id,
-        github_org = "my-example-org"
+        github_org = var.github_org
       }
     )
-    shutdown-script = templatefile("${path.module}/shutdown.sh",
+    shutdown-script = templatefile("${path.module}/scripts/shutdown.sh",
       {
         secret     = google_secret_manager_secret.github_runner_org_token.secret_id
-        github_org = "my-example-org"
+        github_org = var.github_org
       }
     )
   }
