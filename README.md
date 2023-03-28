@@ -1,4 +1,4 @@
-# Self hosted GitHub Actions Runners on Google Cloud
+# Self-hosted GitHub Runners on GCP.
 
 This repository contains reference code for deploying self-hosted GitHub Actions Runners on Google Cloud Platform (GCP) using Google Compute Engine (GCE) and Google Kubernetes Engine (GKE).
 
