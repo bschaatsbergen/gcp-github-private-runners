@@ -9,7 +9,7 @@ apt-get install jq -y
 # Prevent any man-db trigger processing
 rm /var/lib/man-db/auto-update
 
-# Remove the Google Cloud CLI installed through snap, as it's corrupted in the shutdown script.
+# Remove the Google Cloud CLI installed through snap, as it's messing with the shutdown script.
 snap remove google-cloud-cli
 
 # Add Google Cloud SDK repository and install the CLI
